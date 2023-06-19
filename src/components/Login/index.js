@@ -4,7 +4,7 @@ import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity } fro
 import firebase from '../../services/firebaseConnetction';
 //https://www.behance.net/gallery/166936563/Sing-up
 
-export default function Login() {
+export default function Login({changeStatus}) {
   const [type, setType] = useState('login');
 
   const [email, setEmail] = useState('');
@@ -15,7 +15,7 @@ export default function Login() {
     if (type === 'login'){
       const user = firebase.auth().signInWithEmailAndPassword(email, password)
       .then((user) => {
-        console.log(user.user);
+        changeStatus(user.user.uid);
       })
       .catch((error) => {
         alert('Ops, parece que aconteceu algum erro!')
@@ -25,7 +25,7 @@ export default function Login() {
     } else {
       const user = firebase.auth().createUserWithEmailAndPassword(email, password)
       .then((user) => {
-        console.log(user.user);
+        changeStatus(user.user.uid);
       })
       .catch((error) => {
         alert('Ops, parece que aconteceu algum erro!')
