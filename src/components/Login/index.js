@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity } from 'react-native'
 
+import firebase from '../../services/firebaseConnetction';
 //https://www.behance.net/gallery/166936563/Sing-up
 
 export default function Login() {
@@ -10,7 +11,29 @@ export default function Login() {
   const [password, setPassword] = useState('');
 
   function handleLogin(){
-    alert('teste')
+    
+    if (type === 'login'){
+      const user = firebase.auth().signInWithEmailAndPassword(email, password)
+      .then((user) => {
+        console.log(user.user);
+      })
+      .catch((error) => {
+        alert('Ops, parece que aconteceu algum erro!')
+        console.log(error);
+        return;
+      })
+    } else {
+      const user = firebase.auth().createUserWithEmailAndPassword(email, password)
+      .then((user) => {
+        console.log(user.user);
+      })
+      .catch((error) => {
+        alert('Ops, parece que aconteceu algum erro!')
+        console.log(error);
+        return;
+      })
+    }
+
   };
 
   return (
