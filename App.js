@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Text, View, SafeAreaView, TextInput, TouchableOpacity, FlatList, Keyboard } from 'react-native';
 
 import Login from './src/components/Login';
@@ -6,16 +6,61 @@ import TaskList from './src/components/TaskList';
 
 import firebase from './src/services/firebaseConnetction';
 
-
+import Feather from 'react-native-vector-icons/Feather';
 
 export default function App() {
   const [user, setUser] = useState(null);
+  const inputRef = useRef(null);
   const [tasks, setTasks] = useState([]);
 
   const [newTask, setNewTask] = useState('');
+  const [keyTask, setKeyTask] = useState('');
+
+  useEffect(() => {
+    
+    function getUser(){
+      if(!user){
+        return;
+      }
+
+      firebase.database().ref('tarefas').child(user).once('value', (snapshot) => {
+        setTasks([]);
+
+        snapshot?.forEach((childItem) => {
+          const data = {
+            key: childItem.key,
+            nome: childItem.val().nome
+          }
+          setTasks(oldTasks => [...oldTasks, data]);
+        })
+      })
+    }
+
+    getUser();
+
+  }, [user]);
+  
 
   function handleAdd(){
     if (newTask === ''){
+      return;
+    }
+
+    if (keyTask !== ''){
+      firebase.database().ref('tarefas').child(user).child(keyTask).update({
+        nome: newTask
+      })
+      .then(() => {
+        const taskIndex = tasks.findIndex(item => item.key === keyTask);
+        const taskClone = tasks;
+        taskClone[taskIndex].nome = newTask
+
+        setTasks([...taskClone]);
+      })
+
+      Keyboard.dismiss();
+      setNewTask('');
+      setKeyTask('');
       return;
     }
 
@@ -40,11 +85,24 @@ setNewTask('');
 }
 
   function handleDelete(key){
-    alert(key);
+    firebase.database().ref('tarefas').child(user).child(key).remove()
+    .then(() => {
+      const findTasks = tasks.filter(item => item.key !== key);
+      setTasks(findTasks)
+    })
   }
 
   function handleEdit(data){
-    console.log(data);
+    setKeyTask(data.key)
+    setNewTask(data.nome);
+    inputRef.current.focus();
+    
+  }
+
+  function cancelEdit(){
+    setKeyTask('');
+    setNewTask('');
+    Keyboard.dismiss();
   }
 
   if (!user){
@@ -53,12 +111,23 @@ setNewTask('');
 
   return (
     <SafeAreaView style={styles.container}>
+      {keyTask.length > 0 && (
+        <View style={{flexDirection: 'row', marginBottom: 8}}>
+          <TouchableOpacity onPress={cancelEdit}>
+            <Feather name='x-circle' color='#C93C33' size={20}/>
+          </TouchableOpacity>
+          <Text style={{marginLeft: 5, color:'#C93C33'}}>
+            Você está editando uma tarefa!
+          </Text>
+        </View>
+      )}
       <View style={styles.containerTask}>
         <TextInput
           style={styles.input}
           placeholder='O que vai fazer hoje?'
           value={newTask}
           onChangeText={(text) => setNewTask(text)}
+          ref={inputRef}
         />
         <TouchableOpacity style={styles.btnAdd} onPress={handleAdd}>
           <Text style={styles.textBtnAdd}>+</Text>
