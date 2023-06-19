@@ -13,6 +13,14 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [newTask, setNewTask] = useState('');
 
+  function handleDelete(key){
+    alert(key);
+  }
+
+  function handleEdit(data){
+    console.log(data);
+  }
+
   if (!user){
     return <Login changeStatus={(user) => setUser(user)}/>
   }
@@ -34,7 +42,7 @@ export default function App() {
         data={tasks}      
         keyExtractor={(item) => item.key}
         renderItem={({item})=> (
-          <TaskList data={item}/>
+          <TaskList data={item} deleteItem={handleDelete} editItem={handleEdit}/>
         )}
       />
     </SafeAreaView>
@@ -60,10 +68,12 @@ const styles = StyleSheet.create({
     padding: 10,
     color: '#fcfcfc',
     borderWidth: 1,
-    borderColor: '#5e5e5e'
+    borderColor: '#5e5e5e',
+    fontSize: 17,
+    marginRight: 10
   },
   btnAdd: {
-    backgroundColor:'#fcfcfc',
+    backgroundColor:'#339FFE',
     height: 45,
     alignItems: 'center',
     justifyContent: 'center',
